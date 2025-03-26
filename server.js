@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const documentRoutes = require("./routes/documentRoutes");
@@ -8,7 +9,11 @@ const authRoutes = require("./routes/authRoutes"); // ✅ Added auth routes
 const app = express();
 connectDB(); // Connect to Mongo
 app.use(express.json()); // Handle JSON data
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials:true,
+})
+);
 app.use(express.urlencoded({ extended: true }));
 
 // Sample API Route
@@ -22,3 +27,4 @@ app.use("/api/documents", documentRoutes); // Document routes
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
