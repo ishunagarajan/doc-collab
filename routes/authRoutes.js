@@ -24,49 +24,39 @@ router.post("/signup", async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-
     const existingUser = await User.findOne({ email: normalizedEmail });
+
     if (existingUser) {
       console.log("❌ User already exists:", email);
       return res.status(400).json({ status: "error", message: "User already exists" });
     }
 
-    // 🔐 Hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("🔑 Hashed Password:", hashedPassword); // Debugging
+    console.log("🔄 Hashing Password...");
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    console.log("✅ Hashed Password:", hashedPassword);
 
     const newUser = new User({
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
     });
+
+    console.log("🔄 Saving User...");
     await newUser.save();
 
-    const token = generateToken(newUser._id);
-
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 3600000, // 1 hour
-    });
-
-    console.log("✅ User Registered:", newUser.email);
+    console.log("✅ User Registered Successfully:", newUser.email);
 
     res.status(201).json({
       status: "success",
       message: "User registered successfully",
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
     });
+
   } catch (error) {
     console.error("🚨 Signup Error:", error);
-    res.status(500).json({ status: "error", message: "Internal server error" });
+    res.status(500).json({ status: "error", message: error.message });
   }
 });
+
 
 // ✅ Login Route
 router.post("/login", async (req, res) => {
